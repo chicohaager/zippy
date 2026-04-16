@@ -1,0 +1,39 @@
+{
+  "app": {
+    "name": "Zippy",
+    "tagline": "Dein Desktop-Begleiter"
+  },
+  "chat": {
+    "placeholder": "Frag Zippy irgendwas…",
+    "send": "Senden",
+    "send_hint": "Enter zum Senden, Shift+Enter für neue Zeile",
+    "empty_title": "Sag Hallo zu Zippy",
+    "empty_subtitle": "Tipp unten eine Nachricht, um loszulegen.",
+    "thinking": "Zippy denkt nach",
+    "new_chat": "Neuer Chat",
+    "copy": "Kopieren",
+    "copied": "Kopiert",
+    "listening": "Höre zu…",
+    "voice_unsupported": "Sprach-Eingabe nur in Chrome, Edge oder Safari"
+  },
+  "status": {
+    "connected": "Verbunden",
+    "disconnected": "Offline",
+    "connecting": "Verbinde…",
+    "provider": "Anbieter",
+    "model": "Modell"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "theme": "Darstellung",
+    "theme_light": "Hell",
+    "theme_dark": "Dunkel",
+    "theme_system": "System",
+    "language": "Sprache",
+    "provider": "LLM-Anbieter"
+  },
+  "errors": {
+    "connection_lost": "Verbindung weg. Versuche erneut…",
+    "send_failed": "Nachricht konnte nicht gesendet werden."
+  }
+}

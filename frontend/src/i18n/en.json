@@ -1,0 +1,39 @@
+{
+  "app": {
+    "name": "Zippy",
+    "tagline": "Your desktop companion"
+  },
+  "chat": {
+    "placeholder": "Ask Zippy anything…",
+    "send": "Send",
+    "send_hint": "Press Enter to send, Shift+Enter for a new line",
+    "empty_title": "Say hi to Zippy",
+    "empty_subtitle": "Type a message below to start a conversation.",
+    "thinking": "Zippy is thinking",
+    "new_chat": "New chat",
+    "copy": "Copy",
+    "copied": "Copied",
+    "listening": "Listening…",
+    "voice_unsupported": "Voice input requires Chrome, Edge or Safari"
+  },
+  "status": {
+    "connected": "Connected",
+    "disconnected": "Offline",
+    "connecting": "Connecting…",
+    "provider": "Provider",
+    "model": "Model"
+  },
+  "settings": {
+    "title": "Settings",
+    "theme": "Theme",
+    "theme_light": "Light",
+    "theme_dark": "Dark",
+    "theme_system": "System",
+    "language": "Language",
+    "provider": "LLM provider"
+  },
+  "errors": {
+    "connection_lost": "Connection lost. Reconnecting…",
+    "send_failed": "Couldn't send that message."
+  }
+}
