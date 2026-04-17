@@ -34,8 +34,11 @@ function TopBar({ onOpenSidebar }: { onOpenSidebar: () => void }) {
   const status = useConnectionStatus();
 
   return (
-    <header className="flex items-center justify-between gap-4 border-b border-[var(--border)]/60 px-4 py-3">
-      <div className="flex items-center gap-3">
+    <header
+      data-tauri-drag-region
+      className="flex select-none items-center justify-between gap-4 border-b border-[var(--border)]/60 px-4 py-3"
+    >
+      <div data-tauri-drag-region className="flex items-center gap-3">
         <button
           onClick={onOpenSidebar}
           className="rounded-lg p-1.5 text-[var(--ink-muted)] hover:bg-[var(--border)] md:hidden"
@@ -44,9 +47,9 @@ function TopBar({ onOpenSidebar }: { onOpenSidebar: () => void }) {
           <Menu size={18} />
         </button>
         <ZippyAvatar size={36} />
-        <div className="leading-tight">
-          <div className="font-display text-lg font-semibold">{t("app.name")}</div>
-          <div className="text-xs text-[var(--ink-muted)]">{t("app.tagline")}</div>
+        <div data-tauri-drag-region className="leading-tight">
+          <div data-tauri-drag-region className="font-display text-lg font-semibold">{t("app.name")}</div>
+          <div data-tauri-drag-region className="text-xs text-[var(--ink-muted)]">{t("app.tagline")}</div>
         </div>
       </div>
 
