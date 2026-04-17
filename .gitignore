@@ -34,3 +34,7 @@ data/*
 
 # Build
 backend/static/
+*.tsbuildinfo
+
+# Release artifacts (Tauri zips etc.)
+zippy-desktop-v*.zip
