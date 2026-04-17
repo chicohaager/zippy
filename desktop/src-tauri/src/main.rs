@@ -23,13 +23,19 @@ fn main() {
                     let Some(window) = app.get_webview_window("main") else {
                         return;
                     };
+                    // Toggle purely on visibility. The earlier `visible && focused`
+                    // branch left the else-path unreachable when Zippy was visible
+                    // but backgrounded — and re-show after hide silently lost Z-order
+                    // for alwaysOnTop + skipTaskbar windows on Windows, so the
+                    // hotkey "stopped working" after the first hide. Re-assert
+                    // always-on-top after show to recover the Z-order.
                     let visible = window.is_visible().unwrap_or(false);
-                    let focused = window.is_focused().unwrap_or(false);
-                    if visible && focused {
+                    if visible {
                         let _ = window.hide();
                     } else {
                         let _ = window.show();
                         let _ = window.unminimize();
+                        let _ = window.set_always_on_top(true);
                         let _ = window.set_focus();
                     }
                 })

@@ -24,7 +24,8 @@
         "transparent": false,
         "shadow": true,
         "focus": true,
-        "acceptFirstMouse": true
+        "acceptFirstMouse": true,
+        "additionalBrowserArgs": "--autoplay-policy=no-user-gesture-required --unsafely-treat-insecure-origin-as-secure=http://REDACTED_HOST:7860"
       }
     ],
     "security": {
