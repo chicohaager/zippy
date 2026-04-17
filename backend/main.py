@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from backend.api import chat, settings as settings_api, websocket
+from backend.api import chat, settings as settings_api, speak, transcribe, websocket
 from backend.config import settings
 from backend.db import crud as db
 
@@ -39,6 +39,8 @@ app.add_middleware(
 app.include_router(websocket.router)
 app.include_router(chat.router)
 app.include_router(settings_api.router)
+app.include_router(transcribe.router)
+app.include_router(speak.router)
 
 
 _STATIC_DIR = Path(__file__).resolve().parent / "static"

@@ -5,7 +5,7 @@ import { useSettings } from "@/stores/settingsStore";
 export type ConnectionStatus = "connecting" | "connected" | "disconnected";
 
 interface ServerMessage {
-  type: "start" | "delta" | "end" | "conversation" | "error";
+  type: "start" | "delta" | "end" | "conversation" | "error" | "saved";
   text?: string;
   error?: string;
   conversationId?: number;
@@ -13,6 +13,7 @@ interface ServerMessage {
   title?: string;
   provider?: string;
   model?: string;
+  role?: "user" | "assistant";
 }
 
 const wsUrl = () => {
@@ -69,6 +70,11 @@ class ChatSocket {
         case "conversation":
           if (data.id) chat.setConversationId(data.id);
           break;
+        case "saved":
+          if (data.role && typeof data.id === "number") {
+            chat.markSaved(data.role, data.id);
+          }
+          break;
         case "start":
           this.currentAssistantId = chat.startAssistantMessage();
           if (data.conversationId) chat.setConversationId(data.conversationId);
@@ -98,12 +104,14 @@ class ChatSocket {
     };
   }
 
-  send(text: string) {
+  send(text: string, image?: string | null) {
     const trimmed = text.trim();
-    if (!trimmed || !this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+    if (!trimmed && !image) return;
     const chat = useChat.getState();
     const { provider, model } = useSettings.getState();
-    chat.addUserMessage(trimmed);
+    const displayText = trimmed || (image ? "📷 Screen" : "");
+    chat.addUserMessage(displayText);
     this.ws.send(
       JSON.stringify({
         type: "chat",
@@ -111,6 +119,7 @@ class ChatSocket {
         provider,
         model,
         conversationId: chat.conversationId,
+        ...(image ? { image } : {}),
       })
     );
   }
@@ -142,6 +151,6 @@ export function useChatSocketInit() {
   }, []);
 }
 
-export function sendChatMessage(text: string) {
-  socket.send(text);
+export function sendChatMessage(text: string, image?: string | null) {
+  socket.send(text, image);
 }

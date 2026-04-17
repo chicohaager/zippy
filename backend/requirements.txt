@@ -9,3 +9,6 @@ sqlalchemy==2.0.36
 aiosqlite==0.20.0
 websockets==13.1
 python-multipart==0.0.12
+faster-whisper==1.0.3
+requests==2.32.3
+piper-tts==1.2.0

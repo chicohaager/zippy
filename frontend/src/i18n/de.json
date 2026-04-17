@@ -13,8 +13,18 @@
     "new_chat": "Neuer Chat",
     "copy": "Kopieren",
     "copied": "Kopiert",
-    "listening": "Höre zu…",
-    "voice_unsupported": "Sprach-Eingabe nur in Chrome, Edge oder Safari"
+    "listening": "Ich höre…",
+    "transcribing": "Übersetze…",
+    "speak": "Sprechen",
+    "stop": "Stopp",
+    "voice_unsupported": "Sprach-Eingabe braucht ein Mikrofon",
+    "screen": "Zeig Zippy deinen Bildschirm",
+    "screen_upload": "Screenshot für Zippy hochladen",
+    "screen_capturing": "Aufnahme…",
+    "screen_attached": "Bildschirm angehängt — frag Zippy dazu",
+    "screen_remove": "Screenshot entfernen",
+    "delete_msg": "Nachricht löschen",
+    "confirm_delete_msg": "Diese Nachricht löschen?"
   },
   "status": {
     "connected": "Verbunden",
@@ -31,6 +41,18 @@
     "theme_system": "System",
     "language": "Sprache",
     "provider": "LLM-Anbieter"
+  },
+  "sidebar": {
+    "title": "Gespräche",
+    "new": "Neuer Chat",
+    "empty": "Noch keine Gespräche",
+    "rename": "Umbenennen",
+    "delete": "Löschen",
+    "confirm_delete": "Dieses Gespräch löschen?",
+    "open": "Seitenleiste öffnen",
+    "close": "Seitenleiste schließen",
+    "save": "Speichern",
+    "cancel": "Abbrechen"
   },
   "errors": {
     "connection_lost": "Verbindung weg. Versuche erneut…",

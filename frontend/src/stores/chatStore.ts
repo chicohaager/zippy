@@ -4,6 +4,7 @@ export type Role = "user" | "assistant";
 
 export interface ChatMessage {
   id: string;
+  dbId?: number;
   role: Role;
   content: string;
   pending?: boolean;
@@ -19,6 +20,12 @@ interface ChatState {
   finishAssistantMessage: (id: string) => void;
   setConversationId: (id: number) => void;
   setStreaming: (v: boolean) => void;
+  markSaved: (role: Role, dbId: number) => void;
+  removeMessage: (dbId: number) => void;
+  hydrateConversation: (
+    id: number,
+    msgs: { id: number; role: Role; content: string }[]
+  ) => void;
   reset: () => void;
 }
 
@@ -66,5 +73,35 @@ export const useChat = create<ChatState>((set) => ({
 
   setConversationId: (id) => set({ conversationId: id }),
   setStreaming: (v) => set({ isStreaming: v }),
+
+  markSaved: (role, dbId) =>
+    set((s) => {
+      // Assign the dbId to the LAST message of this role that does not yet
+      // have one. Walk backwards so we always pick the freshest match.
+      const next = [...s.messages];
+      for (let i = next.length - 1; i >= 0; i--) {
+        if (next[i].role === role && next[i].dbId === undefined) {
+          next[i] = { ...next[i], dbId };
+          return { messages: next };
+        }
+      }
+      return {};
+    }),
+
+  removeMessage: (dbId) =>
+    set((s) => ({ messages: s.messages.filter((m) => m.dbId !== dbId) })),
+
+  hydrateConversation: (id, msgs) =>
+    set({
+      conversationId: id,
+      isStreaming: false,
+      messages: msgs.map((m) => ({
+        id: rid(),
+        dbId: m.id,
+        role: m.role,
+        content: m.content,
+      })),
+    }),
+
   reset: () => set({ messages: [], conversationId: null, isStreaming: false }),
 }));

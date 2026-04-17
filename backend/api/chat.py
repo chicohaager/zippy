@@ -25,7 +25,7 @@ async def get_conversation(conv_id: int):
         "id": conv.id,
         "title": conv.title,
         "messages": [
-            {"role": m.role, "content": m.content, "created_at": m.created_at.isoformat()}
+            {"id": m.id, "role": m.role, "content": m.content, "created_at": m.created_at.isoformat()}
             for m in conv.messages
         ],
     }
@@ -36,6 +36,14 @@ async def delete_conversation(conv_id: int):
     ok = await crud.delete_conversation(conv_id)
     if not ok:
         raise HTTPException(status_code=404, detail="conversation_not_found")
+    return {"ok": True}
+
+
+@router.delete("/{conv_id}/messages/{msg_id}")
+async def delete_message(conv_id: int, msg_id: int):
+    ok = await crud.delete_message(conv_id, msg_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="message_not_found")
     return {"ok": True}
 
 

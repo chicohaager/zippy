@@ -35,10 +35,13 @@ async def chat_ws(ws: WebSocket) -> None:
             provider_name: str | None = data.get("provider")
             model: str | None = data.get("model")
             conv_id: int | None = data.get("conversationId")
+            image_data_url: str | None = data.get("image")
 
-            if not user_text:
+            if not user_text and not image_data_url:
                 await ws.send_json({"type": "error", "error": "empty_message"})
                 continue
+            if not user_text and image_data_url:
+                user_text = "What do you see on my screen?"
 
             if conv_id is None:
                 title = user_text[:60] + ("…" if len(user_text) > 60 else "")
@@ -48,7 +51,8 @@ async def chat_ws(ws: WebSocket) -> None:
                     {"type": "conversation", "id": conv.id, "title": conv.title}
                 )
 
-            await crud.add_message(conv_id, "user", user_text)
+            user_msg = await crud.add_message(conv_id, "user", user_text)
+            await ws.send_json({"type": "saved", "role": "user", "id": user_msg.id})
 
             conv = await crud.get_conversation(conv_id)
             history: list[LLMMessage] = [
@@ -56,6 +60,11 @@ async def chat_ws(ws: WebSocket) -> None:
                 for m in (conv.messages if conv else [])
                 if m.role in ("user", "assistant")
             ]
+
+            # Attach the screenshot (if any) only to the current turn, never to DB.
+            # This is deliberate: "Zippy, look at my screen NOW" is point-in-time.
+            if image_data_url and history and history[-1].role == "user":
+                history[-1].image = image_data_url
 
             try:
                 provider = get_provider(provider_name)
@@ -82,7 +91,8 @@ async def chat_ws(ws: WebSocket) -> None:
 
             full = "".join(buffer)
             if full:
-                await crud.add_message(conv_id, "assistant", full)
+                asst_msg = await crud.add_message(conv_id, "assistant", full)
+                await ws.send_json({"type": "saved", "role": "assistant", "id": asst_msg.id})
             await ws.send_json({"type": "end", "conversationId": conv_id})
     except WebSocketDisconnect:
         return

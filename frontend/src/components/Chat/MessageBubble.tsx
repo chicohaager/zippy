@@ -1,18 +1,49 @@
 import { useState, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Check, Copy } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { Check, Copy, Trash2 } from "lucide-react";
 import clsx from "clsx";
-import type { ChatMessage } from "@/stores/chatStore";
+import { useChat, type ChatMessage } from "@/stores/chatStore";
+import { deleteMessage } from "@/lib/conversationsApi";
 
 interface Props {
   message: ChatMessage;
 }
 
 export function MessageBubble({ message }: Props) {
+  const { t } = useTranslation();
   const isUser = message.role === "user";
+  const conversationId = useChat((s) => s.conversationId);
+  const removeMessage = useChat((s) => s.removeMessage);
+
+  const canDelete =
+    typeof message.dbId === "number" &&
+    typeof conversationId === "number" &&
+    !message.pending;
+
+  const handleDelete = async () => {
+    if (!canDelete) return;
+    if (!confirm(t("chat.confirm_delete_msg"))) return;
+    const dbId = message.dbId!;
+    removeMessage(dbId);
+    try {
+      await deleteMessage(conversationId!, dbId);
+    } catch {
+      // Could re-hydrate to restore; silent for MVP.
+    }
+  };
+
   return (
-    <div className={clsx("flex w-full", isUser ? "justify-end" : "justify-start")}>
+    <div
+      className={clsx(
+        "group flex w-full items-start gap-2",
+        isUser ? "justify-end" : "justify-start"
+      )}
+    >
+      {!isUser && canDelete && (
+        <DeleteButton onClick={handleDelete} label={t("chat.delete_msg")} />
+      )}
       <div className={clsx(isUser ? "message-user" : "message-assistant", "prose-tight")}>
         {isUser ? (
           <p className="whitespace-pre-wrap">{message.content}</p>
@@ -40,7 +71,24 @@ export function MessageBubble({ message }: Props) {
           </div>
         )}
       </div>
+      {isUser && canDelete && (
+        <DeleteButton onClick={handleDelete} label={t("chat.delete_msg")} />
+      )}
     </div>
+  );
+}
+
+function DeleteButton({ onClick, label }: { onClick: () => void; label: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="mt-1 rounded-full p-1.5 text-[var(--ink-muted)] opacity-0 transition hover:bg-[var(--border)] hover:text-red-600 group-hover:opacity-100 focus:opacity-100 dark:hover:text-red-400"
+      aria-label={label}
+      title={label}
+    >
+      <Trash2 size={13} />
+    </button>
   );
 }
 

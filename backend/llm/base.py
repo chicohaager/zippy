@@ -12,6 +12,9 @@ Role = Literal["user", "assistant"]
 class Message:
     role: Role
     content: str
+    # Optional inline image (data URL: "data:image/jpeg;base64,...").
+    # Only attached to the current turn's user message — not persisted.
+    image: str | None = None
 
 
 class LLMProvider(ABC):

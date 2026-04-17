@@ -8,11 +8,32 @@ services:
     volumes:
       - ./data:/data
       - ./SOUL.md:/data/SOUL.md:ro
+      - whisper_cache:/root/.cache/huggingface
     environment:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
       - DEFAULT_PROVIDER=${DEFAULT_PROVIDER:-anthropic}
       - DEFAULT_MODEL=${DEFAULT_MODEL:-claude-sonnet-4-20250514}
+      - WHISPER_MODEL=${WHISPER_MODEL:-base}
+      - WHISPER_LANGUAGE=${WHISPER_LANGUAGE:-auto}
       - LOG_LEVEL=${LOG_LEVEL:-info}
     extra_hosts:
       - "host.docker.internal:host-gateway"
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: zippy-caddy
+    restart: unless-stopped
+    depends_on:
+      - zippy
+    ports:
+      - "7443:7443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:
+  whisper_cache:

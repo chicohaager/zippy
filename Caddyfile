@@ -1,0 +1,10 @@
+{
+	auto_https disable_redirects
+	default_sni zippy.local
+}
+
+https://REDACTED_HOST:7443, https://zippy.local:7443 {
+	tls internal
+	encode gzip zstd
+	reverse_proxy zippy:7860
+}

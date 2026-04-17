@@ -67,6 +67,16 @@ async def delete_conversation(conv_id: int) -> bool:
         return True
 
 
+async def delete_message(conv_id: int, msg_id: int) -> bool:
+    async with _Session() as s:
+        msg = await s.get(Message, msg_id)
+        if msg is None or msg.conversation_id != conv_id:
+            return False
+        await s.delete(msg)
+        await s.commit()
+        return True
+
+
 async def rename_conversation(conv_id: int, title: str) -> bool:
     async with _Session() as s:
         conv = await s.get(Conversation, conv_id)

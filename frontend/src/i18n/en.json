@@ -14,7 +14,17 @@
     "copy": "Copy",
     "copied": "Copied",
     "listening": "Listening…",
-    "voice_unsupported": "Voice input requires Chrome, Edge or Safari"
+    "transcribing": "Transcribing…",
+    "speak": "Click to speak",
+    "stop": "Stop listening",
+    "voice_unsupported": "Voice input requires a microphone",
+    "screen": "Show Zippy your screen",
+    "screen_upload": "Upload a screenshot for Zippy",
+    "screen_capturing": "Capturing…",
+    "screen_attached": "Screen attached — ask Zippy about it",
+    "screen_remove": "Remove screenshot",
+    "delete_msg": "Delete message",
+    "confirm_delete_msg": "Delete this message?"
   },
   "status": {
     "connected": "Connected",
@@ -31,6 +41,18 @@
     "theme_system": "System",
     "language": "Language",
     "provider": "LLM provider"
+  },
+  "sidebar": {
+    "title": "Conversations",
+    "new": "New chat",
+    "empty": "No conversations yet",
+    "rename": "Rename",
+    "delete": "Delete",
+    "confirm_delete": "Delete this conversation?",
+    "open": "Open sidebar",
+    "close": "Close sidebar",
+    "save": "Save",
+    "cancel": "Cancel"
   },
   "errors": {
     "connection_lost": "Connection lost. Reconnecting…",
