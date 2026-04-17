@@ -3,8 +3,17 @@
 // Window-Grundkonfig (Groesse, always-on-top, decorations) lebt in tauri.conf.json.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use std::sync::atomic::{AtomicBool, Ordering};
+
 use tauri::{Manager, PhysicalPosition, WebviewWindow};
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
+
+// Explicit toggle state. We used to branch on `window.is_visible()`, but after
+// a show() that also does set_position + set_always_on_top + set_focus, the
+// Windows WebView2 visibility-mirror sometimes reported stale/false values
+// on the next hotkey press, so hide() became unreachable. Tracking the state
+// ourselves is bulletproof.
+static SHOWN: AtomicBool = AtomicBool::new(true);
 
 #[cfg(windows)]
 fn cursor_position() -> Option<(i32, i32)> {
@@ -83,21 +92,16 @@ fn main() {
                     let Some(window) = app.get_webview_window("main") else {
                         return;
                     };
-                    // Toggle purely on visibility. The earlier `visible && focused`
-                    // branch left the else-path unreachable when Zippy was visible
-                    // but backgrounded — and re-show after hide silently lost Z-order
-                    // for alwaysOnTop + skipTaskbar windows on Windows, so the
-                    // hotkey "stopped working" after the first hide. Re-assert
-                    // always-on-top after show to recover the Z-order.
-                    let visible = window.is_visible().unwrap_or(false);
-                    if visible {
+                    if SHOWN.load(Ordering::SeqCst) {
                         let _ = window.hide();
+                        SHOWN.store(false, Ordering::SeqCst);
                     } else {
                         position_near_cursor(&window);
                         let _ = window.show();
                         let _ = window.unminimize();
                         let _ = window.set_always_on_top(true);
                         let _ = window.set_focus();
+                        SHOWN.store(true, Ordering::SeqCst);
                     }
                 })
                 .build(),
