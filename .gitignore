@@ -38,3 +38,6 @@ backend/static/
 
 # Release artifacts (Tauri zips etc.)
 zippy-desktop-v*.zip
+
+# Private working notes — never committed
+STATUS.md

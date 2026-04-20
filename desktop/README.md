@@ -1,6 +1,6 @@
 # Zippy Desktop Overlay
 
-Iteration 2: natives Fenster + globaler Hotkey **Ctrl+Alt+Z** zum Ein-/Ausblenden. Lädt die bestehende Zippy-Web-App (http://REDACTED_HOST:7860) — zweite Stufe Richtung „AI teacher living as a buddy next to your cursor".
+Iteration 2: natives Fenster + globaler Hotkey **Ctrl+Alt+Z** zum Ein-/Ausblenden. Lädt die bestehende Zippy-Web-App (http://localhost:7860) — zweite Stufe Richtung „AI teacher living as a buddy next to your cursor".
 
 ## Hotkey
 
@@ -70,7 +70,7 @@ tauri dev
 >    `cd /d F:\dev\zippy\desktop\src-tauri` — sonst bleibt das Working
 >    Directory auf dem alten Laufwerk.
 
-Das Fenster öffnet ~380×620 px, ohne Titel-Leiste, always-on-top, lädt `http://REDACTED_HOST:7860`. Backend muss auf ZimaOS laufen (tut es — der Zippy-Container ist dauerhaft oben).
+Das Fenster öffnet ~380×620 px, ohne Titel-Leiste, always-on-top, lädt die in `tauri.conf.json` eingetragene `devUrl` (Default: `http://localhost:7860`). Das Backend muss erreichbar sein, bevor das Overlay startet.
 
 ---
 
@@ -117,7 +117,7 @@ cd desktop/src-tauri && tauri dev
 
 ## Troubleshooting
 
-- **Fenster bleibt weiß:** Backend nicht erreichbar, prüfe `curl http://REDACTED_HOST:7860/api/status`.
+- **Fenster bleibt weiß:** Backend nicht erreichbar, prüfe `curl http://localhost:7860/api/status`.
 - **„tauri" nicht gefunden:** `npm install -g @tauri-apps/cli@^2` erneut. Sicherstellen, dass das npm-global-bin-Verzeichnis im PATH liegt (`npm config get prefix`).
 - **Windows: „MSVC linker not found":** Visual Studio Build Tools mit Desktop-C++-Workload nachinstallieren.
 - **Always-on-top funktioniert nicht:** einige Linux-Desktops ignorieren das Flag; auf Windows/Mac zuverlässig.

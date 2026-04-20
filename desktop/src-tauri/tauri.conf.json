@@ -5,7 +5,7 @@
   "identifier": "info.virtual-services.zippy",
   "build": {
     "frontendDist": "../dist",
-    "devUrl": "http://REDACTED_HOST:7860"
+    "devUrl": "http://localhost:7860"
   },
   "app": {
     "withGlobalTauri": true,
@@ -13,7 +13,7 @@
       {
         "label": "main",
         "title": "Zippy",
-        "url": "http://REDACTED_HOST:7860",
+        "url": "http://localhost:7860",
         "width": 380,
         "height": 620,
         "minWidth": 320,
@@ -27,7 +27,7 @@
         "focus": true,
         "acceptFirstMouse": true,
         "devtools": true,
-        "additionalBrowserArgs": "--autoplay-policy=no-user-gesture-required --unsafely-treat-insecure-origin-as-secure=http://REDACTED_HOST:7860"
+        "additionalBrowserArgs": "--autoplay-policy=no-user-gesture-required --unsafely-treat-insecure-origin-as-secure=http://localhost:7860"
       }
     ],
     "security": {

@@ -77,7 +77,7 @@ Open http://localhost:5173
 
 The overlay is a thin Tauri wrapper around the web UI — a native always-on-top
 window, summoned with `Ctrl+Alt+Z`, that loads whatever backend you point it at
-(default: the ZimaOS deploy at `http://REDACTED_HOST:7860`).
+(set the URL in `desktop/src-tauri/tauri.conf.json`).
 
 ![Zippy desktop overlay with a captured screen attached to the composer, ready to be sent to Claude Vision](docs/overlay-screen-attached.png)
 
@@ -103,9 +103,9 @@ tauri dev
 `tauri.conf.json`, so you have to launch from `desktop\src-tauri`, not
 `desktop`. If you insist on `cmd.exe`, use `cd /d F:\dev\zippy\desktop\src-tauri`.)
 
-The backend (`http://REDACTED_HOST:7860` or your own) must be reachable.
-Change the target URL in `desktop/src-tauri/tauri.conf.json` if you deploy
-somewhere else.
+The backend must be reachable from the machine running the overlay —
+point the overlay at it by editing `devUrl` in
+`desktop/src-tauri/tauri.conf.json`.
 
 Full details, Linux/Mac notes, and troubleshooting in
 [`desktop/README.md`](desktop/README.md).
@@ -157,7 +157,7 @@ Backend routes:
 
 ## ZimaOS
 
-Data volume lives at `./data` (or `/data/zippy/` on ZimaOS).
+Data volume lives at `./data` relative to the compose file.
 The container runs entirely self-contained — no host `apt` dependencies.
 
 ## License

@@ -3,7 +3,8 @@
 	default_sni zippy.local
 }
 
-https://REDACTED_HOST:7443, https://zippy.local:7443 {
+# Adjust the hostname(s) to match your LAN setup.
+https://zippy.local:7443 {
 	tls internal
 	encode gzip zstd
 	reverse_proxy zippy:7860
