@@ -81,9 +81,24 @@ async def chat_ws(ws: WebSocket) -> None:
             system = load_soul()
             buffer: list[str] = []
             try:
-                async for chunk in provider.stream(history, system=system, model=chosen_model):
-                    buffer.append(chunk)
-                    await ws.send_json({"type": "delta", "text": chunk})
+                async for event in provider.stream(history, system=system, model=chosen_model):
+                    etype = event.get("type")
+                    if etype == "text":
+                        text = event.get("text", "")
+                        buffer.append(text)
+                        await ws.send_json({"type": "delta", "text": text})
+                    elif etype == "point":
+                        # point_at tool_use — surfaced as a sibling event to
+                        # the text stream. Only text is persisted; points are
+                        # ephemeral UI signals for the desktop overlay.
+                        await ws.send_json({
+                            "type": "point",
+                            "x": event.get("x"),
+                            "y": event.get("y"),
+                            "label": event.get("label"),
+                        })
+                    else:
+                        log.debug("unknown stream event type: %r", etype)
             except Exception as e:  # defensive: provider.stream should yield its own errors
                 log.exception("provider stream crashed")
                 await ws.send_json({"type": "error", "error": str(e)})

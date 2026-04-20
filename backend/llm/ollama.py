@@ -5,7 +5,7 @@ from typing import AsyncIterator
 
 import httpx
 
-from backend.llm.base import LLMProvider, Message
+from backend.llm.base import LLMProvider, Message, StreamEvent
 
 
 class OllamaProvider(LLMProvider):
@@ -19,7 +19,7 @@ class OllamaProvider(LLMProvider):
         messages: list[Message],
         system: str,
         model: str,
-    ) -> AsyncIterator[str]:
+    ) -> AsyncIterator[StreamEvent]:
         payload = {
             "model": model,
             "messages": [{"role": "system", "content": system}]
@@ -32,7 +32,7 @@ class OllamaProvider(LLMProvider):
                     "POST", f"{self._base_url}/api/chat", json=payload
                 ) as resp:
                     if resp.status_code != 200:
-                        yield f"[Zippy] Ollama returned {resp.status_code}"
+                        yield {"type": "text", "text": f"[Zippy] Ollama returned {resp.status_code}"}
                         return
                     async for line in resp.aiter_lines():
                         if not line:
@@ -45,11 +45,11 @@ class OllamaProvider(LLMProvider):
                             break
                         piece = chunk.get("message", {}).get("content", "")
                         if piece:
-                            yield piece
+                            yield {"type": "text", "text": piece}
         except httpx.ConnectError:
-            yield f"[Zippy] Can't reach Ollama at {self._base_url}. Is it running?"
+            yield {"type": "text", "text": f"[Zippy] Can't reach Ollama at {self._base_url}. Is it running?"}
         except Exception as e:
-            yield f"[Zippy] Ollama error: {e}"
+            yield {"type": "text", "text": f"[Zippy] Ollama error: {e}"}
 
     async def health(self) -> bool:
         try:

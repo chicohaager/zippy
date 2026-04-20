@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import AsyncIterator, Literal
+from typing import Any, AsyncIterator, Literal
 
 
 Role = Literal["user", "assistant"]
@@ -17,6 +17,12 @@ class Message:
     image: str | None = None
 
 
+# Structured stream events. Providers yield dicts with a "type" discriminator so
+# providers that support tool-use (Anthropic) can surface non-text events like
+# "point" — the point_at Pointing-Prototyp signal for the desktop overlay.
+StreamEvent = dict[str, Any]
+
+
 class LLMProvider(ABC):
     name: str
 
@@ -26,10 +32,11 @@ class LLMProvider(ABC):
         messages: list[Message],
         system: str,
         model: str,
-    ) -> AsyncIterator[str]:
-        """Yield response text chunks as they arrive."""
+    ) -> AsyncIterator[StreamEvent]:
+        """Yield structured events. Always at least {type:"text", text:"..."}.
+        Anthropic may additionally yield {type:"point", x, y, label}."""
         if False:
-            yield ""  # pragma: no cover
+            yield {}  # pragma: no cover
 
     @abstractmethod
     async def health(self) -> bool:
