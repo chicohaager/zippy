@@ -2,6 +2,24 @@ import { useEffect, useSyncExternalStore } from "react";
 import { useChat } from "@/stores/chatStore";
 import { useSettings } from "@/stores/settingsStore";
 
+// Resolve the tauri invoke channel if we're running inside the desktop
+// overlay, so a claude point_at can be rendered as a real on-screen ring by
+// the point-overlay window instead of just an inline text hint in the chat.
+type TauriInvoke = <T = unknown>(cmd: string, args?: Record<string, unknown>) => Promise<T>;
+function getTauriInvoke(): TauriInvoke | null {
+  if (typeof window === "undefined") return null;
+  const w = window as unknown as {
+    __TAURI__?: { core?: { invoke?: TauriInvoke }; invoke?: TauriInvoke };
+    __TAURI_INTERNALS__?: { invoke?: TauriInvoke };
+  };
+  return (
+    w.__TAURI__?.core?.invoke
+    ?? w.__TAURI__?.invoke
+    ?? w.__TAURI_INTERNALS__?.invoke
+    ?? null
+  );
+}
+
 export type ConnectionStatus = "connecting" | "connected" | "disconnected";
 
 interface ServerMessage {
@@ -94,19 +112,28 @@ class ChatSocket {
           }
           break;
         case "point":
-          // Phase (d)-1 interim render: until the dedicated transparent
-          // canvas-overlay lands in phase (d)-2/3, surface the point as an
-          // inline annotation inside the current assistant bubble. If claude
-          // only fired a tool_use block with no text, this also becomes the
-          // whole visible response — otherwise the user sees "no answer".
-          if (this.currentAssistantId && typeof data.x === "number" && typeof data.y === "number") {
-            const label = data.label && data.label.trim() ? data.label : "hier";
-            const xPct = Math.round(data.x * 100);
-            const yPct = Math.round(data.y * 100);
-            chat.appendAssistantDelta(
-              this.currentAssistantId,
-              `\n\n📍 **${label}** — x: ${xPct}%, y: ${yPct}% (Zippy zeigt — Overlay-Canvas kommt in Iter.2)`
-            );
+          // Phase (d)-2: inside the desktop overlay, fire the tauri
+          // show_point command so the transparent full-monitor window draws
+          // an actual ring at the claude-reported coordinates. In the
+          // browser (no tauri), fall back to the phase-(d)-1 inline text
+          // annotation so the user still gets *something* useful.
+          if (typeof data.x === "number" && typeof data.y === "number") {
+            const invoke = getTauriInvoke();
+            const label = data.label ?? null;
+            if (invoke) {
+              void invoke("show_point", { x: data.x, y: data.y, label }).catch((e) => {
+                // eslint-disable-next-line no-console
+                console.warn("[zippy] show_point failed:", e);
+              });
+            } else if (this.currentAssistantId) {
+              const shown = label && label.trim() ? label : "hier";
+              const xPct = Math.round(data.x * 100);
+              const yPct = Math.round(data.y * 100);
+              chat.appendAssistantDelta(
+                this.currentAssistantId,
+                `\n\n📍 **${shown}** — x: ${xPct}%, y: ${yPct}%`
+              );
+            }
           }
           break;
         case "error":
