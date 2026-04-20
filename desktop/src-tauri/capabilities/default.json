@@ -3,5 +3,9 @@
   "identifier": "default",
   "description": "Zippy overlay — default webview capabilities",
   "windows": ["main"],
-  "permissions": ["core:default", "global-shortcut:default"]
+  "permissions": [
+    "core:default",
+    "global-shortcut:default",
+    "core:window:allow-start-dragging"
+  ]
 }
