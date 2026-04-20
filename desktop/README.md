@@ -42,19 +42,33 @@ Falls leer: https://developer.microsoft.com/microsoft-edge/webview2/ → Evergre
 ### 4) Tauri CLI
 
 ```powershell
-cargo install tauri-cli --version "^2.0"
+npm install -g @tauri-apps/cli@^2
 ```
 
-~3-5 Minuten Kompilieren. Einmalig.
+Installiert die `tauri`-Binary global auf den PATH. Node.js muss vorhanden sein.
+Aufrufen danach als `tauri dev` (ohne `cargo` davor).
 
 ### 5) Repo holen
 
+**PowerShell benutzen, nicht `cmd.exe`.** `cmd` wechselt mit einem nackten `cd`
+**das Laufwerk nicht** — aus `C:\>` bleibst du mit `cd F:\…` stumm auf `C:\`,
+und der Tauri-Build läuft dann in einem falschen Ordner ins Nirgendwo.
+
 ```powershell
-cd C:\dev     # oder wo auch immer
+cd F:\dev     # oder wo auch immer
 git clone <repo-url>
-cd Zippy\desktop
-cargo tauri dev
+cd zippy\desktop\src-tauri
+tauri dev
 ```
+
+> **Zwei typische Fallen:**
+> 1. **`cd desktop` allein reicht nicht** — die Tauri-v2-CLI walkt aufwärts
+>    durch Parent-Verzeichnisse auf der Suche nach `tauri.conf.json`, nicht
+>    nach unten. Immer bis `src-tauri` wechseln. Sonst:
+>    `Couldn't recognize the current folder as a Tauri project`.
+> 2. **CMD statt PowerShell:** Wenn du trotzdem `cmd.exe` benutzt, nimm
+>    `cd /d F:\dev\zippy\desktop\src-tauri` — sonst bleibt das Working
+>    Directory auf dem alten Laufwerk.
 
 Das Fenster öffnet ~380×620 px, ohne Titel-Leiste, always-on-top, lädt `http://REDACTED_HOST:7860`. Backend muss auf ZimaOS laufen (tut es — der Zippy-Container ist dauerhaft oben).
 
@@ -76,7 +90,7 @@ Das Fenster öffnet ~380×620 px, ohne Titel-Leiste, always-on-top, lädt `http:
 - Autostart bei Login
 - Native Screen-Capture via Tauri-Plugin (ohne File-Upload-Umweg)
 - Native Pointing-Overlay (Zippy zeigt direkt auf Screen-Elemente)
-- Release-Build: `cargo tauri build` → `.msi` Installer
+- Release-Build: `tauri build` → `.msi` Installer
 
 ---
 
@@ -86,8 +100,8 @@ Das Fenster öffnet ~380×620 px, ohne Titel-Leiste, always-on-top, lädt `http:
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 source $HOME/.cargo/env
 sudo apt install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf libxdo-dev libssl-dev libglib2.0-dev libgtk-3-dev
-cargo install tauri-cli --version "^2.0"
-cd desktop && cargo tauri dev
+npm install -g @tauri-apps/cli@^2
+cd desktop/src-tauri && tauri dev
 ```
 
 Nur sinnvoll für Build/Test der Tauri-Config. Das Overlay selbst lebt auf Windows.
@@ -97,14 +111,14 @@ Nur sinnvoll für Build/Test der Tauri-Config. Das Overlay selbst lebt auf Windo
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 xcode-select --install     # falls Xcode-CLT nicht da
-cargo install tauri-cli --version "^2.0"
-cd desktop && cargo tauri dev
+npm install -g @tauri-apps/cli@^2
+cd desktop/src-tauri && tauri dev
 ```
 
 ## Troubleshooting
 
 - **Fenster bleibt weiß:** Backend nicht erreichbar, prüfe `curl http://REDACTED_HOST:7860/api/status`.
-- **„cargo tauri" nicht gefunden:** `cargo install tauri-cli --version "^2.0"` erneut.
+- **„tauri" nicht gefunden:** `npm install -g @tauri-apps/cli@^2` erneut. Sicherstellen, dass das npm-global-bin-Verzeichnis im PATH liegt (`npm config get prefix`).
 - **Windows: „MSVC linker not found":** Visual Studio Build Tools mit Desktop-C++-Workload nachinstallieren.
 - **Always-on-top funktioniert nicht:** einige Linux-Desktops ignorieren das Flag; auf Windows/Mac zuverlässig.
 - **Ctrl+Alt+Z macht nichts:** eine andere App hat den Hotkey gegrabbt. Tauri registriert global, First-come-first-served. Temporär andere App mit dem Binding schließen; Rebind-UI kommt später.

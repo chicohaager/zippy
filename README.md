@@ -1,32 +1,45 @@
 # Zippy
 
-> A self-hosted, warm, opinionated AI desktop companion. Runs in Docker on Linux / ZimaOS.
+> An AI teacher that lives as a buddy next to your cursor — sees your screen, talks to you, points at stuff.
 
 Zippy is a modern-day [Clippy](https://en.wikipedia.org/wiki/Office_Assistant) —
 redesigned for an age where the assistant on your desktop can actually help.
 Chat with Claude (or a local Ollama model), with a UI that doesn't feel like
 AI slop: warm creams, a terracotta accent, a friendly mascot.
 
+Two pieces:
+
+- **Backend + web UI** — FastAPI + React, packaged as a single Docker container.
+  Runs on Linux / ZimaOS, also usable straight in the browser.
+- **Desktop overlay (Windows)** — native Tauri window, always-on-top,
+  summoned with `Ctrl+Alt+Z` next to your cursor. This is the north star:
+  Zippy is not a tab, it's a buddy.
+
 ![Zippy](frontend/public/zippy-mascot.svg)
 
 ## Status
 
-**Phase 1 — MVP**
+**Phase 1 — MVP (done, deployed on ZimaOS)**
 
-- [x] Project skeleton, Docker, single-container deploy
-- [x] FastAPI backend with WebSocket streaming
-- [x] Anthropic Claude integration (streaming)
-- [x] Ollama integration (local models)
-- [x] React + Tailwind frontend, retro-modern aesthetic
-- [x] Markdown rendering with copy-able code blocks
-- [x] Theme toggle (light / dark / system)
-- [x] i18n (English / German)
-- [x] SQLite conversation persistence
+- [x] Docker single-container deploy, FastAPI + WebSocket streaming
+- [x] Anthropic Claude (streaming) and Ollama integration
+- [x] React + Tailwind, retro-modern aesthetic, markdown with copy-able code
+- [x] Theme toggle (light / dark / system), i18n (EN / DE)
+- [x] SQLite conversation persistence + conversation sidebar
 - [x] Animated Zippy mascot (idle / thinking / speaking)
-- [ ] Voice input (Whisper) — Phase 2
-- [ ] Voice output (Piper / Coqui) — Phase 2
-- [ ] Conversation sidebar — Phase 2
-- [ ] Settings panel — Phase 2
+- [x] Voice output (browser SpeechSynthesis)
+- [x] Voice input (browser SpeechRecognition, Chrome/Edge only)
+
+**Phase 2 — Desktop overlay on Windows**
+
+- [x] Tauri overlay, always-on-top, borderless, draggable header
+- [x] Global hotkey `Ctrl+Alt+Z` (show / hide)
+- [x] Summon next to the cursor (with monitor-bounds clamp)
+- [x] DevTools enabled (`F12`) for in-place debugging
+- [ ] Screen capture → Claude Vision (diagnosis in progress)
+- [ ] System-tray icon + autostart
+- [ ] Pointing prototype (arrows / rings on screen coordinates)
+- [ ] Server-side Whisper STT (to fix iPad / Safari gap)
 
 ## Quick start (Docker)
 
@@ -59,6 +72,39 @@ npm run dev
 ```
 
 Open http://localhost:5173
+
+## Desktop overlay (Windows)
+
+The overlay is a thin Tauri wrapper around the web UI — a native always-on-top
+window, summoned with `Ctrl+Alt+Z`, that loads whatever backend you point it at
+(default: the ZimaOS deploy at `http://REDACTED_HOST:7860`).
+
+**Prerequisites on Windows 10/11:**
+
+1. **Rust** — `rustup-init.exe` from https://rustup.rs (stable, MSVC toolchain)
+2. **Visual Studio Build Tools** with the "Desktop development with C++" workload
+3. **WebView2 Runtime** — pre-installed on modern Windows; otherwise get the
+   Evergreen runtime from Microsoft
+4. **Tauri CLI** — `npm install -g @tauri-apps/cli@^2` (installs the `tauri` binary on PATH)
+
+Then from the repo root on Windows — **use PowerShell, not `cmd.exe`**
+(`cmd` doesn't switch drives with a plain `cd`, which is a common trip-up):
+
+```powershell
+cd F:\dev\zippy\desktop\src-tauri
+tauri dev
+```
+
+(The Tauri CLI walks up through parent directories looking for
+`tauri.conf.json`, so you have to launch from `desktop\src-tauri`, not
+`desktop`. If you insist on `cmd.exe`, use `cd /d F:\dev\zippy\desktop\src-tauri`.)
+
+The backend (`http://REDACTED_HOST:7860` or your own) must be reachable.
+Change the target URL in `desktop/src-tauri/tauri.conf.json` if you deploy
+somewhere else.
+
+Full details, Linux/Mac notes, and troubleshooting in
+[`desktop/README.md`](desktop/README.md).
 
 ## Configuration
 
