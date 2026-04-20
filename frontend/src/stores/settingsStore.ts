@@ -24,13 +24,17 @@ export const useSettings = create<SettingsState>()(
       voiceOutput: true,
       setTheme: (theme) => set({ theme }),
       setProvider: (provider) =>
-        set({
+        // Model stays whatever it was; the ProviderSwitcher syncs it to the
+        // first actually-available model from /api/providers once loaded.
+        // Anthropic path still gets a sensible fallback because its model
+        // list is stable/hardcoded server-side.
+        set((s) => ({
           provider,
           model:
-            provider === "anthropic"
+            provider === "anthropic" && !s.model.startsWith("claude-")
               ? "claude-sonnet-4-20250514"
-              : "qwen2.5",
-        }),
+              : s.model,
+        })),
       setModel: (model) => set({ model }),
       setVoiceOutput: (voiceOutput) => set({ voiceOutput }),
     }),

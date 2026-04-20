@@ -31,6 +31,28 @@ export function ProviderSwitcher() {
 
   const models = data?.models?.[provider] ?? [];
 
+  // When switching providers, always sync the active model to the first one
+  // that's actually available on that provider. Otherwise the store's
+  // hardcoded fallback (e.g. "qwen2.5" without tag) can point at a model
+  // that isn't pulled — ollama then 404s on /api/chat.
+  const switchProvider = (p: Provider) => {
+    setProvider(p);
+    const available = data?.models?.[p] ?? [];
+    if (available.length > 0) setModel(available[0]);
+  };
+
+  // Auto-heal: if the currently selected model isn't in the list we just
+  // loaded (e.g. persisted from an older session), snap it to the first
+  // available one so the next send doesn't blow up.
+  useEffect(() => {
+    if (!data) return;
+    const list = data.models?.[provider] ?? [];
+    if (list.length > 0 && !list.includes(model)) {
+      setModel(list[0]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, provider]);
+
   return (
     <div ref={ref} className="relative">
       <button
@@ -56,7 +78,7 @@ export function ProviderSwitcher() {
                 <button
                   key={p}
                   type="button"
-                  onClick={() => setProvider(p)}
+                  onClick={() => switchProvider(p)}
                   className={
                     "flex-1 rounded px-2 py-1 text-xs transition " +
                     (provider === p
