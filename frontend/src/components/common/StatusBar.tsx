@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import clsx from "clsx";
 import type { ConnectionStatus } from "@/hooks/useWebSocket";
-import { useSettings } from "@/stores/settingsStore";
+import { ProviderSwitcher } from "./ProviderSwitcher";
 
 interface Props {
   status: ConnectionStatus;
@@ -9,7 +9,6 @@ interface Props {
 
 export function StatusBar({ status }: Props) {
   const { t } = useTranslation();
-  const { provider, model } = useSettings();
 
   const label =
     status === "connected"
@@ -32,9 +31,7 @@ export function StatusBar({ status }: Props) {
         {label}
       </span>
       <span className="hidden md:inline">•</span>
-      <span className="hidden md:inline">
-        {provider} · <span className="font-mono">{model}</span>
-      </span>
+      <ProviderSwitcher />
     </div>
   );
 }
