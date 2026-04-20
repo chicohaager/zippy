@@ -79,6 +79,8 @@ The overlay is a thin Tauri wrapper around the web UI — a native always-on-top
 window, summoned with `Ctrl+Alt+Z`, that loads whatever backend you point it at
 (default: the ZimaOS deploy at `http://REDACTED_HOST:7860`).
 
+![Zippy desktop overlay with a captured screen attached to the composer, ready to be sent to Claude Vision](docs/overlay-screen-attached.png)
+
 **Prerequisites on Windows 10/11:**
 
 1. **Rust** — `rustup-init.exe` from https://rustup.rs (stable, MSVC toolchain)
