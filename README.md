@@ -36,7 +36,7 @@ Two pieces:
 - [x] Global hotkey `Ctrl+Alt+Z` (show / hide)
 - [x] Summon next to the cursor (with monitor-bounds clamp)
 - [x] DevTools enabled (`F12`) for in-place debugging
-- [ ] Screen capture → Claude Vision (diagnosis in progress)
+- [x] Screen capture → Claude Vision (native `xcap`, end-to-end verified 2026-04-20)
 - [ ] System-tray icon + autostart
 - [ ] Pointing prototype (arrows / rings on screen coordinates)
 - [ ] Server-side Whisper STT (to fix iPad / Safari gap)
@@ -80,6 +80,8 @@ window, summoned with `Ctrl+Alt+Z`, that loads whatever backend you point it at
 (default: the ZimaOS deploy at `http://REDACTED_HOST:7860`).
 
 ![Zippy desktop overlay with a captured screen attached to the composer, ready to be sent to Claude Vision](docs/overlay-screen-attached.png)
+
+![Claude Vision reading the captured screen — recognises the GOTOOLS Product Presenter UI, the gotools.de URL in the input field, and describes the 5-slide PowerPoint workflow](docs/overlay-vision-response.png)
 
 **Prerequisites on Windows 10/11:**
 
