@@ -3,6 +3,38 @@ import { useCallback, useRef, useState } from "react";
 const MAX_EDGE = 1568;
 const JPEG_QUALITY = 0.85;
 
+// When running inside the Tauri overlay, `window.__TAURI__` is injected
+// (tauri.conf.json has `withGlobalTauri: true`), and we can call the Rust
+// `capture_screen` command directly — WebView2's `getDisplayMedia` is dead
+// in that context, so this path is what actually drives the "Zippy sees
+// your screen" demo.
+type TauriInvoke = <T = unknown>(cmd: string, args?: Record<string, unknown>) => Promise<T>;
+function getTauriInvoke(): TauriInvoke | null {
+  if (typeof window === "undefined") return null;
+  const t = (window as unknown as { __TAURI__?: { core?: { invoke?: TauriInvoke } } }).__TAURI__;
+  return t?.core?.invoke ?? null;
+}
+
+async function captureViaTauri(): Promise<string | null> {
+  const invoke = getTauriInvoke();
+  if (!invoke) return null;
+  try {
+    const dataUrl = await invoke<string>("capture_screen");
+    if (typeof dataUrl !== "string" || !dataUrl.startsWith("data:")) return null;
+    // Downscale through the same pipeline as live/file so the upload size
+    // stays bounded — full-HD PNGs otherwise balloon the payload.
+    const img = new Image();
+    img.src = dataUrl;
+    await new Promise((r, j) => {
+      img.onload = () => r(null);
+      img.onerror = j;
+    });
+    return await resizeToDataURL(img, img.naturalWidth, img.naturalHeight);
+  } catch {
+    return null;
+  }
+}
+
 async function resizeToDataURL(source: HTMLVideoElement | HTMLImageElement, sw: number, sh: number): Promise<string | null> {
   if (!sw || !sh) return null;
   const scale = Math.min(1, MAX_EDGE / Math.max(sw, sh));
@@ -94,9 +126,16 @@ export function useScreenCapture() {
     });
   }, []);
 
-  // Single entry: live if available, else file picker.
+  // Capture order: native Tauri (desktop overlay) → browser live (web) → file picker.
+  // Tauri path wins inside the Windows overlay where getDisplayMedia is dead.
   const captureScreen = useCallback(async (): Promise<string | null> => {
-    return liveSupported ? await captureLive() : await pickFile();
+    const shot = await captureViaTauri();
+    if (shot) return shot;
+    if (liveSupported) {
+      const live = await captureLive();
+      if (live) return live;
+    }
+    return await pickFile();
   }, [liveSupported, captureLive, pickFile]);
 
   return { captureScreen, isCapturing, supported: true, liveSupported };

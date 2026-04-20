@@ -3,8 +3,12 @@
 // Window-Grundkonfig (Groesse, always-on-top, decorations) lebt in tauri.conf.json.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use std::io::Cursor;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::thread;
+use std::time::Duration;
 
+use base64::Engine;
 use tauri::{Manager, PhysicalPosition, WebviewWindow};
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 
@@ -75,11 +79,55 @@ fn position_near_cursor(window: &WebviewWindow) {
     let _ = window.set_position(PhysicalPosition::new(target_x, target_y));
 }
 
+// Native screen capture. WebView2's `getDisplayMedia` is effectively dead on
+// Windows even with the `unsafely-treat-insecure-origin-as-secure` flag, so
+// we grab the primary monitor ourselves via xcap, encode PNG, return a data
+// URL. The overlay window is hidden around the capture so Zippy himself
+// doesn't end up in the shot.
+#[tauri::command]
+async fn capture_screen(window: WebviewWindow) -> Result<String, String> {
+    use xcap::Monitor;
+
+    let was_visible = window.is_visible().unwrap_or(false);
+    if was_visible {
+        let _ = window.hide();
+        // Give the compositor a beat to actually remove the window before
+        // the screen grab; otherwise it can still appear in the shot.
+        thread::sleep(Duration::from_millis(120));
+    }
+
+    let capture_result = (|| -> Result<String, String> {
+        let monitors = Monitor::all().map_err(|e| format!("monitors: {e}"))?;
+        let primary = monitors
+            .into_iter()
+            .find(|m| m.is_primary().unwrap_or(false))
+            .ok_or_else(|| "no primary monitor".to_string())?;
+        let img = primary
+            .capture_image()
+            .map_err(|e| format!("capture: {e}"))?;
+
+        let mut buf = Vec::new();
+        img.write_to(&mut Cursor::new(&mut buf), image::ImageFormat::Png)
+            .map_err(|e| format!("encode: {e}"))?;
+
+        let b64 = base64::engine::general_purpose::STANDARD.encode(&buf);
+        Ok(format!("data:image/png;base64,{b64}"))
+    })();
+
+    if was_visible {
+        let _ = window.show();
+        let _ = window.set_focus();
+    }
+
+    capture_result
+}
+
 fn main() {
     let toggle = Shortcut::new(Some(Modifiers::CONTROL | Modifiers::ALT), Code::KeyZ);
     let toggle_for_handler = toggle;
 
     tauri::Builder::default()
+        .invoke_handler(tauri::generate_handler![capture_screen])
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
                 .with_handler(move |app, triggered, event| {
