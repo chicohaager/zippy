@@ -86,6 +86,8 @@ tauri dev --config tauri.conf.local.json
 
 Die `tauri.conf.local.json` wird automatisch über die checked-in `tauri.conf.json` gemerged und ist durch `.gitignore` vor dem versehentlichen Committen geschützt.
 
+> **Wichtig:** Tauri v2 ersetzt den `app.windows`-Array komplett beim Merge (kein per-label-deep-merge). Das Template enthält deshalb den **vollen** Window-Block (title, width, decorations etc.). Wenn `tauri.conf.json` um Window-Properties erweitert wird, sollten die auch im Template und deiner lokalen Override nachgezogen werden, sonst greifen deine Window-Defaults nicht (Fenster öffnet als generisches „Tauri App" mit Standard-Decorations + alle Sidebar-Breakpoints misverhalten sich).
+
 ---
 
 ## Was diese Iteration kann
