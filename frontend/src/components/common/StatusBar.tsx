@@ -30,7 +30,7 @@ export function StatusBar({ status }: Props) {
         />
         {label}
       </span>
-      <span className="hidden md:inline">•</span>
+      <span className="opacity-50">•</span>
       <ProviderSwitcher />
     </div>
   );

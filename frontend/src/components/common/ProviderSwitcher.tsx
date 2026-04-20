@@ -36,12 +36,12 @@ export function ProviderSwitcher() {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="hidden md:inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs hover:bg-[var(--ink-subtle)] transition"
-        title="Provider / Modell wechseln"
+        className="inline-flex max-w-[9rem] items-center gap-1 truncate rounded-md px-1.5 py-0.5 text-xs hover:bg-[var(--ink-subtle)] transition"
+        title={`${provider} · ${model} — klicken zum Wechseln`}
       >
-        <span>{provider}</span>
+        <span className="truncate">{provider}</span>
         <span className="opacity-50">·</span>
-        <span className="font-mono">{model}</span>
+        <span className="font-mono truncate">{model}</span>
         <span className="ml-0.5 opacity-50">▾</span>
       </button>
 
