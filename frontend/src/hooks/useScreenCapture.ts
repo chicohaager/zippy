@@ -11,18 +11,46 @@ const JPEG_QUALITY = 0.85;
 type TauriInvoke = <T = unknown>(cmd: string, args?: Record<string, unknown>) => Promise<T>;
 function getTauriInvoke(): TauriInvoke | null {
   if (typeof window === "undefined") return null;
-  const t = (window as unknown as { __TAURI__?: { core?: { invoke?: TauriInvoke } } }).__TAURI__;
-  return t?.core?.invoke ?? null;
+  const w = window as unknown as {
+    __TAURI__?: { core?: { invoke?: TauriInvoke }; invoke?: TauriInvoke };
+    __TAURI_INTERNALS__?: { invoke?: TauriInvoke };
+  };
+  return (
+    w.__TAURI__?.core?.invoke
+    ?? w.__TAURI__?.invoke
+    ?? w.__TAURI_INTERNALS__?.invoke
+    ?? null
+  );
+}
+
+function isTauriEnv(): boolean {
+  if (typeof window === "undefined") return false;
+  const w = window as unknown as {
+    __TAURI__?: unknown;
+    __TAURI_INTERNALS__?: unknown;
+    isTauri?: boolean;
+  };
+  return !!(w.__TAURI__ || w.__TAURI_INTERNALS__ || w.isTauri);
 }
 
 async function captureViaTauri(): Promise<string | null> {
+  const env = isTauriEnv();
   const invoke = getTauriInvoke();
+  // Surface why the native path did or didn't trigger — without this the
+  // silent fall-through to the file-picker is impossible to diagnose from
+  // the user side.
+  // eslint-disable-next-line no-console
+  console.info("[zippy] captureViaTauri: env=%s invoke=%s", env, !!invoke);
   if (!invoke) return null;
   try {
     const dataUrl = await invoke<string>("capture_screen");
+    // eslint-disable-next-line no-console
+    console.info(
+      "[zippy] captureViaTauri: got dataUrl (len=%d, starts=%s)",
+      typeof dataUrl === "string" ? dataUrl.length : -1,
+      typeof dataUrl === "string" ? dataUrl.slice(0, 20) : String(dataUrl)
+    );
     if (typeof dataUrl !== "string" || !dataUrl.startsWith("data:")) return null;
-    // Downscale through the same pipeline as live/file so the upload size
-    // stays bounded — full-HD PNGs otherwise balloon the payload.
     const img = new Image();
     img.src = dataUrl;
     await new Promise((r, j) => {
@@ -30,7 +58,9 @@ async function captureViaTauri(): Promise<string | null> {
       img.onerror = j;
     });
     return await resizeToDataURL(img, img.naturalWidth, img.naturalHeight);
-  } catch {
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.warn("[zippy] captureViaTauri threw:", e);
     return null;
   }
 }
@@ -128,9 +158,18 @@ export function useScreenCapture() {
 
   // Capture order: native Tauri (desktop overlay) → browser live (web) → file picker.
   // Tauri path wins inside the Windows overlay where getDisplayMedia is dead.
+  // In a Tauri env the file-picker is never the right answer — there's no
+  // polite degradation from "grab the screen" to "pick a file" — so if we
+  // detect Tauri but the invoke channel is missing, we stop early rather
+  // than pop an OS dialog that confuses the user.
   const captureScreen = useCallback(async (): Promise<string | null> => {
     const shot = await captureViaTauri();
     if (shot) return shot;
+    if (isTauriEnv()) {
+      // eslint-disable-next-line no-console
+      console.warn("[zippy] captureScreen: in Tauri but native capture failed — NOT falling back to file-picker");
+      return null;
+    }
     if (liveSupported) {
       const live = await captureLive();
       if (live) return live;

@@ -108,6 +108,13 @@ class AnthropicProvider(LLMProvider):
         )
         if has_image:
             kwargs["tools"] = [POINT_TOOL]
+        log.info(
+            "anthropic request: model=%s msgs=%d has_image=%s tools=%s",
+            model,
+            len(payload),
+            has_image,
+            "point_at" if has_image else "none",
+        )
 
         # Per-block bookkeeping. Anthropic streams events keyed by content-block
         # index; tool_use blocks deliver their JSON as input_json_delta chunks,
@@ -125,6 +132,7 @@ class AnthropicProvider(LLMProvider):
                         idx = event.index
                         block = event.content_block
                         block_type[idx] = block.type
+                        log.info("block[%d] start: type=%s name=%s", idx, block.type, getattr(block, "name", None))
                         if block.type == "tool_use":
                             block_name[idx] = block.name
                             block_json[idx] = ""
@@ -153,6 +161,7 @@ class AnthropicProvider(LLMProvider):
                                 log.warning("point_at without numeric x/y: %r", args)
                                 continue
                             label = args.get("label")
+                            log.info("point_at emitted: x=%.4f y=%.4f label=%r", float(x), float(y), label)
                             yield {
                                 "type": "point",
                                 "x": float(x),

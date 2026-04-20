@@ -5,7 +5,7 @@ import { useSettings } from "@/stores/settingsStore";
 export type ConnectionStatus = "connecting" | "connected" | "disconnected";
 
 interface ServerMessage {
-  type: "start" | "delta" | "end" | "conversation" | "error" | "saved";
+  type: "start" | "delta" | "end" | "conversation" | "error" | "saved" | "point";
   text?: string;
   error?: string;
   conversationId?: number;
@@ -14,6 +14,9 @@ interface ServerMessage {
   provider?: string;
   model?: string;
   role?: "user" | "assistant";
+  x?: number;
+  y?: number;
+  label?: string | null;
 }
 
 const wsUrl = () => {
@@ -88,6 +91,22 @@ class ChatSocket {
           if (this.currentAssistantId) {
             chat.finishAssistantMessage(this.currentAssistantId);
             this.currentAssistantId = null;
+          }
+          break;
+        case "point":
+          // Phase (d)-1 interim render: until the dedicated transparent
+          // canvas-overlay lands in phase (d)-2/3, surface the point as an
+          // inline annotation inside the current assistant bubble. If claude
+          // only fired a tool_use block with no text, this also becomes the
+          // whole visible response — otherwise the user sees "no answer".
+          if (this.currentAssistantId && typeof data.x === "number" && typeof data.y === "number") {
+            const label = data.label && data.label.trim() ? data.label : "hier";
+            const xPct = Math.round(data.x * 100);
+            const yPct = Math.round(data.y * 100);
+            chat.appendAssistantDelta(
+              this.currentAssistantId,
+              `\n\n📍 **${label}** — x: ${xPct}%, y: ${yPct}% (Zippy zeigt — Overlay-Canvas kommt in Iter.2)`
+            );
           }
           break;
         case "error":
