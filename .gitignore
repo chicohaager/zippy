@@ -41,3 +41,6 @@ zippy-desktop-v*.zip
 
 # Private working notes — never committed
 STATUS.md
+
+# Local tauri dev override — has user's backend host/LAN IP
+desktop/src-tauri/tauri.conf.local.json

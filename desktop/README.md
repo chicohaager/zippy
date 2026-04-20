@@ -72,6 +72,20 @@ tauri dev
 
 Das Fenster öffnet ~380×620 px, ohne Titel-Leiste, always-on-top, lädt die in `tauri.conf.json` eingetragene `devUrl` (Default: `http://localhost:7860`). Das Backend muss erreichbar sein, bevor das Overlay startet.
 
+### Lokale Backend-URL überschreiben (ohne die IP zu committen)
+
+Wenn dein Backend woanders läuft als auf `localhost:7860` (typisch: ein Home-Server im LAN), lege eine **lokale, gitignorierte Override-Config** an und starte Tauri mit `--config`:
+
+```powershell
+cd desktop\src-tauri
+Copy-Item tauri.conf.local.json.example tauri.conf.local.json
+# Öffne tauri.conf.local.json und ersetze YOUR-BACKEND-HOST mit deiner IP/dem Hostnamen,
+# z. B. 192.168.1.XXX — an allen drei Stellen (devUrl, window url, additionalBrowserArgs)
+tauri dev --config tauri.conf.local.json
+```
+
+Die `tauri.conf.local.json` wird automatisch über die checked-in `tauri.conf.json` gemerged und ist durch `.gitignore` vor dem versehentlichen Committen geschützt.
+
 ---
 
 ## Was diese Iteration kann

@@ -1,0 +1,14 @@
+{
+  "build": {
+    "devUrl": "http://YOUR-BACKEND-HOST:7860"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "url": "http://YOUR-BACKEND-HOST:7860",
+        "additionalBrowserArgs": "--autoplay-policy=no-user-gesture-required --unsafely-treat-insecure-origin-as-secure=http://YOUR-BACKEND-HOST:7860"
+      }
+    ]
+  }
+}
