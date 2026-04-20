@@ -9,7 +9,8 @@ use std::thread;
 use std::time::Duration;
 
 use base64::Engine;
-use tauri::{Manager, PhysicalPosition, WebviewWindow};
+use serde::Serialize;
+use tauri::{Emitter, Manager, PhysicalPosition, PhysicalSize, WebviewWindow};
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 
 // Explicit toggle state. We used to branch on `window.is_visible()`, but after
@@ -122,12 +123,89 @@ async fn capture_screen(window: WebviewWindow) -> Result<String, String> {
     capture_result
 }
 
+// Phase (d)-2: point at something on the screen. x/y are normalized (0..1)
+// over the primary monitor (same coordinate space the screenshot used), so
+// claude's point_at tool output can be passed through unchanged. The overlay
+// window is a separate, transparent, click-through full-monitor window
+// declared in tauri.conf.json (label="point-overlay"); we resize it to the
+// monitor, tell it to draw, and auto-hide after ~3.5 s.
+#[derive(Serialize, Clone)]
+struct PointPayload {
+    x: f64,
+    y: f64,
+    label: Option<String>,
+    monitor_width: u32,
+    monitor_height: u32,
+}
+
+#[tauri::command]
+async fn show_point(
+    app: tauri::AppHandle,
+    x: f64,
+    y: f64,
+    label: Option<String>,
+) -> Result<(), String> {
+    let overlay = app
+        .get_webview_window("point-overlay")
+        .ok_or_else(|| "point-overlay window missing".to_string())?;
+    let main = app.get_webview_window("main");
+
+    // Resolve which monitor the main zippy window is on; fall back to any
+    // monitor / primary. We want the ring to land on the same screen the
+    // user sees zippy on.
+    let monitor = main
+        .as_ref()
+        .and_then(|w| w.current_monitor().ok().flatten())
+        .or_else(|| overlay.primary_monitor().ok().flatten())
+        .or_else(|| overlay.available_monitors().ok().and_then(|m| m.into_iter().next()))
+        .ok_or_else(|| "no monitor".to_string())?;
+
+    let mpos = monitor.position();
+    let msize = monitor.size();
+
+    // Click-through + sizing + position, then show.
+    let _ = overlay.set_ignore_cursor_events(true);
+    let _ = overlay.set_size(PhysicalSize::new(msize.width, msize.height));
+    let _ = overlay.set_position(PhysicalPosition::new(mpos.x, mpos.y));
+    let _ = overlay.set_always_on_top(true);
+    let _ = overlay.show();
+
+    let _ = overlay.emit(
+        "draw-point",
+        PointPayload {
+            x,
+            y,
+            label,
+            monitor_width: msize.width,
+            monitor_height: msize.height,
+        },
+    );
+
+    // Auto-hide fallback so a stuck overlay doesn't block the screen forever.
+    // The frontend does its own fade-out animation before this kicks in.
+    let overlay_for_timer = overlay.clone();
+    thread::spawn(move || {
+        thread::sleep(Duration::from_millis(3500));
+        let _ = overlay_for_timer.hide();
+    });
+
+    Ok(())
+}
+
+#[tauri::command]
+async fn hide_point(app: tauri::AppHandle) -> Result<(), String> {
+    if let Some(w) = app.get_webview_window("point-overlay") {
+        let _ = w.hide();
+    }
+    Ok(())
+}
+
 fn main() {
     let toggle = Shortcut::new(Some(Modifiers::CONTROL | Modifiers::ALT), Code::KeyZ);
     let toggle_for_handler = toggle;
 
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![capture_screen])
+        .invoke_handler(tauri::generate_handler![capture_screen, show_point, hide_point])
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
                 .with_handler(move |app, triggered, event| {

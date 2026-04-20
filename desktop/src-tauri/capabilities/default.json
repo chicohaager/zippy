@@ -2,7 +2,7 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Zippy overlay — default webview capabilities",
-  "windows": ["main"],
+  "windows": ["main", "point-overlay"],
   "permissions": [
     "core:default",
     "global-shortcut:default",
@@ -12,6 +12,8 @@
     "core:window:allow-set-focus",
     "core:window:allow-set-position",
     "core:window:allow-is-visible",
-    "core:window:allow-close"
+    "core:window:allow-close",
+    "core:event:allow-listen",
+    "core:event:allow-unlisten"
   ]
 }

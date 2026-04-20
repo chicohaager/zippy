@@ -22,6 +22,22 @@
         "acceptFirstMouse": true,
         "devtools": true,
         "additionalBrowserArgs": "--autoplay-policy=no-user-gesture-required --unsafely-treat-insecure-origin-as-secure=http://YOUR-BACKEND-HOST:7860"
+      },
+      {
+        "label": "point-overlay",
+        "title": "Zippy Point Overlay",
+        "url": "http://YOUR-BACKEND-HOST:7860/?overlay=point",
+        "width": 100,
+        "height": 100,
+        "visible": false,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "resizable": false,
+        "focus": false,
+        "shadow": false,
+        "acceptFirstMouse": false
       }
     ]
   }
